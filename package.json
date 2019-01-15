@@ -1,0 +1,17 @@
+{
+  "name": "mqtt-example",
+  "version": "1.0.0",
+  "description": "Example how to use mqtt with nodejs",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "mqtt": "^2.18.8",
+    "node-cleanup": "^2.1.2"
+  }
+}
