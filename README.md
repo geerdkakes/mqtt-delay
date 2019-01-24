@@ -13,7 +13,7 @@ npm install
 
 run the app with:
 ```
-node server.js -i 500 -b 20 -q 2 -u user -p passwd -h localhost
+node server.js -i 500 -b 20 -q 2 -u user -s passwd -h localhost
 ```
 the flags stand for:
  * -i wait_time_in_msec
@@ -34,7 +34,7 @@ docker build -t mqtt-delay .
 
 Run the docker image using:
 ```
-docker run -it mqtt-delay -i 500 -b 20 -q 2 -u user -p passwd -h localhost
+docker run -it mqtt-delay -i 500 -b 20 -q 2 -u user -s passwd -h localhost
 ```
 
 
