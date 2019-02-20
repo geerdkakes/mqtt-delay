@@ -60,6 +60,7 @@ var fd_log = null;
 var buffer_location = Buffer.alloc(50);
 var buffer_cellid = Buffer.alloc(10);
 
+
 // open location file
 fs.stat(file_location, function postStat(errStat, stats) {
     if (errStat) {
@@ -148,7 +149,7 @@ client.on('message',function(topic, message, packet){
                     console.error("could not read file: " + file_cellid);
                     process.exit(1);
                 }
-                fs.write(fd_log, process.hrtime(sendtime)[1]/1000000 + "|" + buffer_loc.toString('utf8').slice(0, -50 + bytesRead_loc).trimRight() + "|" + buffer_cellid.toString('utf8').slice(0, -10 + bytesRead_cellid).trimRight() + "\n",function postWrite(errWrite, written, string){
+                fs.write(fd_log, Date.now().valueOf() + "|" + process.hrtime(sendtime)[1]/1000000 + "|" + buffer_loc.toString('utf8').slice(0, -50 + bytesRead_loc).trimRight() + "|" + buffer_cellid.toString('utf8').slice(0, -10 + bytesRead_cellid).trimRight() + "\n",function postWrite(errWrite, written, string){
                     if (errWrite) {
                         console.error("Error writing log data");
                     }
