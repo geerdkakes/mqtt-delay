@@ -24,8 +24,6 @@ the flags stand for:
  * -u user
  * -s passwd
  * -o output file to write output to (if ommited stdout is used)
- * -l location file where gps location is stored (if ommited location.value is used)
- * -c cellid file where cellid is stored (if ommited cellid.value is used)
 
 
 ## Optional using docker
