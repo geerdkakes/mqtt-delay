@@ -3,28 +3,49 @@ const args = require('minimist')(process.argv.slice(2));
 var nodeCleanup = require('node-cleanup');
 const fs = require('fs');
 
+var KEY = __dirname + '/client_key.pem';
+var CERT = __dirname + '/client_certificate.pem';
+var CA = __dirname + '/ca_certificate.pem';
+
 /*
  * -i wait_time_in_msec
- * -h hostname (if ommited localhost is used)
+ * -h url (if ommited mqtt://localhost is used)
  * -p port (if ommited port 1883 is used)
  * -b number_of_bytes_send (10 if ommitted)
  * -q qos_option (0 if ommitted)
  * -u user
  * -s passwd
  * -o output logfile name to write to
+ * 
+ * When using TLS make sure the CA certificate is known. E.g. by
+ * specifying the path wit an environment variable:
+ * 
+ * export NODE_EXTRA_CA_CERTS=/Users/geerd/Developer/geoserver-k8s/etc/ca_certificate.pem
+ * 
  */
 
  // when running on the cluster with rabbitmq use "rabbitmq.default.svc.appfactory.local"
  // for the hostname
 
-var mqtt_hostname = (typeof args.h === 'undefined' || args.h === null) ? "localhost" : args.h;
+var mqtt_url = (typeof args.h === 'undefined' || args.h === null) ? "mqtt://localhost" : args.h;
 
 var mqtt_options = {
-    clientId: "mqttjs01",
+    clientId: "mqttjs03",
     username: (typeof args.u === 'undefined' || args.u === null) ? "testuser" : args.u,
     password: (typeof args.s === 'undefined' || args.s === null) ? "passwd" : args.s,
     port: (typeof args.p === 'undefined' || args.p === null) ? 1883 : args.p,
-    clean:false};
+    clean:false,
+    key: fs.readFileSync(KEY),
+    cert: fs.readFileSync(CERT),
+    rejectUnauthorized : true,
+//    passphrase: '1j38dh2sf',
+    ca: fs.readFileSync(CA)
+    //The CA list will be used to determine if server is authorized
+//    ca: TRUSTED_CA_LIST
+};
+
+console.log("mqtt_options:");
+console.log(mqtt_options);
 
 var message_options = {
     retain:false,
@@ -40,7 +61,7 @@ var sendtime = 999; // arbitrary number other than 0 to start only with sending 
 var connected = false;
 var interval = (typeof args.i === 'undefined' || args.i === null) ? 500 : args.i; // millisecond
 var timing_values = [];
-var client  = mqtt.connect('mqtt://'+mqtt_hostname,
+var client  = mqtt.connect(mqtt_url,
                            mqtt_options
                            );
 
