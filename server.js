@@ -2,7 +2,8 @@ var mqtt=require('mqtt');
 const args = require('minimist')(process.argv.slice(2));
 var nodeCleanup = require('node-cleanup');
 const fs = require('fs');
-
+var secure = false;
+var port;
 var KEY = __dirname + '/client_key.pem';
 var CERT = __dirname + '/client_certificate.pem';
 var CA = __dirname + '/ca_certificate.pem';
@@ -29,20 +30,37 @@ var CA = __dirname + '/ca_certificate.pem';
 
 var mqtt_url = (typeof args.h === 'undefined' || args.h === null) ? "mqtt://localhost" : args.h;
 
+if (mqtt_url.substring(0,5) === "mqtts") {
+   secure = true;
+}
+if (typeof args.p === 'undefined' || args.p === null) {
+    // no port specified, we guess the port
+    if (secure) {
+        port = 8883;
+    } else {
+        port = 1883;
+    }
+} else {
+    port = args.p;
+}
+
 var mqtt_options = {
     clientId: "mqttjs03",
     username: (typeof args.u === 'undefined' || args.u === null) ? "testuser" : args.u,
     password: (typeof args.s === 'undefined' || args.s === null) ? "passwd" : args.s,
-    port: (typeof args.p === 'undefined' || args.p === null) ? 1883 : args.p,
-    clean:false,
-    key: fs.readFileSync(KEY),
-    cert: fs.readFileSync(CERT),
+    port: port,
+    clean: false,
     rejectUnauthorized : true,
 //    passphrase: '1j38dh2sf',
-    ca: fs.readFileSync(CA)
     //The CA list will be used to determine if server is authorized
 //    ca: TRUSTED_CA_LIST
 };
+
+if (secure) {
+    mqtt_options.key = fs.readFileSync(KEY);
+    mqtt_options.cert = fs.readFileSync(CERT);
+    mqtt_options.ca = fs.readFileSync(CA);
+}
 
 console.log("mqtt_options:");
 console.log(mqtt_options);
