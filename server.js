@@ -4,6 +4,8 @@ var nodeCleanup = require('node-cleanup');
 const fs = require('fs');
 var secure = false;
 var port;
+var testNumLimite;
+var testNum = 0;
 var KEY = __dirname + '/client_key.pem';
 var CERT = __dirname + '/client_certificate.pem';
 var CA = __dirname + '/ca_certificate.pem';
@@ -17,6 +19,7 @@ var CA = __dirname + '/ca_certificate.pem';
  * -u user
  * -s passwd
  * -o output logfile name to write to
+ * -n number of tests
  * 
  * When using TLS make sure the CA certificate is known. E.g. by
  * specifying the path wit an environment variable:
@@ -43,6 +46,8 @@ if (typeof args.p === 'undefined' || args.p === null) {
 } else {
     port = args.p;
 }
+
+testNumLimite = args.n;
 
 var mqtt_options = {
     clientId: "mqttjs03",
@@ -125,6 +130,10 @@ client.on('message',function(topic, message, packet){
         });
         timing_values.push(process.hrtime(sendtime)[1]);
         sendtime = 0;
+        if (testNumLimite && testNum >= Number(testNumLimite)) {
+            // We have reached the amount of tests (specified with -n option)
+            process.exit(0);
+        }
     }
 });
 
@@ -134,6 +143,7 @@ setInterval(function(){
     if ( connected == true && sendtime == 0) {
         sendtime = process.hrtime();
         client.publish(topic, message_buffer, message_options);
+        testNum++;
     } else {
         if (connected == false) {
             console.log("no connection...");
