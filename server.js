@@ -6,6 +6,7 @@ var secure = false;
 var port;
 var testNumLimite;
 var testNum = 0;
+var skipPacketsMeasurement = 0;
 var KEY = __dirname + '/client_key.pem';
 var CERT = __dirname + '/client_certificate.pem';
 var CA = __dirname + '/ca_certificate.pem';
@@ -20,6 +21,9 @@ var CA = __dirname + '/ca_certificate.pem';
  * -s passwd
  * -o output logfile name to write to
  * -n number of tests
+ * -c mqtt clientid
+ * -t topic to publish on
+ * -w number of first packet to skip from measurement
  * 
  * When using TLS make sure the CA certificate is known. E.g. by
  * specifying the path wit an environment variable:
@@ -48,9 +52,10 @@ if (typeof args.p === 'undefined' || args.p === null) {
 }
 
 testNumLimite = args.n;
+skipPacketsMeasurement = args.w || 0;
 
 var mqtt_options = {
-    clientId: "mqttjs03",
+    clientId: (typeof args.c === 'undefined' || args.c === null) ? "mqttjs03" : args.c,
     username: (typeof args.u === 'undefined' || args.u === null) ? "testuser" : args.u,
     password: (typeof args.s === 'undefined' || args.s === null) ? "passwd" : args.s,
     port: port,
@@ -77,7 +82,7 @@ var message_options = {
 
 var file_log = (typeof args.o === 'undefined' || args.o === null) ? null : args.o;
 
-var topic="testtimingtopic";
+var topic=(typeof args.t === 'undefined' || args.t === null) ? "testtopic" : args.t;
 var number_of_bytes_send = (typeof args.b === 'undefined' || args.b === null) ? 10 : args.b;
 const message_buffer = Buffer.alloc(number_of_bytes_send, 1); // buffer filled with ones
 var sendtime = 999; // arbitrary number other than 0 to start only with sending after subscribing
@@ -128,7 +133,11 @@ client.on('message',function(topic, message, packet){
                 console.error("Error writing log data");
             }
         });
-        timing_values.push(process.hrtime(sendtime)[1]);
+        if (skipPacketsMeasurement) {
+            skipPacketsMeasurement--;
+        } else {
+            timing_values.push(process.hrtime(sendtime)[1]);
+        }
         sendtime = 0;
         if (testNumLimite && testNum >= Number(testNumLimite)) {
             // We have reached the amount of tests (specified with -n option)
@@ -143,7 +152,11 @@ setInterval(function(){
     if ( connected == true && sendtime == 0) {
         sendtime = process.hrtime();
         client.publish(topic, message_buffer, message_options);
-        testNum++;
+        if (skipPacketsMeasurement) {
+            console.log("skipping first packets (option -w)");
+        } else {
+            testNum++;
+        }
     } else {
         if (connected == false) {
             console.log("no connection...");

@@ -25,6 +25,7 @@ the flags stand for:
  * -s passwd
  * -o output file to write output to (if ommited stdout is used)
  * -n number of tests to run
+ * -w packets to skip
 
 
 ## Optional using docker
