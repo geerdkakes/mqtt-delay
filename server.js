@@ -123,7 +123,6 @@ client.on("connect",function(){
 
 client.on("error", function(error){ 
    console.log("Can't connect"+error);
-   process.exit(1);
 });
 
 //handle incoming messages
