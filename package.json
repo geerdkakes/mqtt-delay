@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.3",
     "mqtt": "^4.2.6",
     "node-cleanup": "^2.1.2"
   }
