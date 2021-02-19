@@ -131,7 +131,7 @@ client.on('message',function(topic, message, packet){
     // console.log("incomming message with sendtime: " + sendtime + " and message: " + message);
         let delaytime  = Number(process.hrtime.bigint() - message.readBigUInt64BE(0));
         if (verbosity <=2) {
-            console.log("Sending..");
+            console.log("receiving..");
         }
         fs.write(fd_log, Date.now().valueOf() + "|" + delaytime/1000000 + "\n",function postWrite(errWrite, written, string){
             if (errWrite) {
