@@ -127,8 +127,8 @@ client.on("error", function(error){
 //handle incoming messages
 client.on('message',function(topic, message, packet){
     // console.log("incomming message with sendtime: " + sendtime + " and message: " + message);
-    if (sendtime != 0) {
-        fs.write(fd_log, Date.now().valueOf() + "|" + process.hrtime(sendtime)[1]/1000000 + "\n",function postWrite(errWrite, written, string){
+        let delaytime  = Number(process.hrtime.bigint() - message.readBigUInt64BE(0));
+        fs.write(fd_log, Date.now().valueOf() + "|" + delaytime/1000000 + "\n",function postWrite(errWrite, written, string){
             if (errWrite) {
                 console.error("Error writing log data");
             }
@@ -136,21 +136,21 @@ client.on('message',function(topic, message, packet){
         if (skipPacketsMeasurement) {
             skipPacketsMeasurement--;
         } else {
-            timing_values.push(process.hrtime(sendtime)[1]);
+            timing_values.push(delaytime);
         }
-        sendtime = 0;
+
         if (testNumLimite && testNum >= Number(testNumLimite)) {
             // We have reached the amount of tests (specified with -n option)
             process.exit(0);
         }
-    }
 });
 
  
 setInterval(function(){
     // console.log("interval called with connected: " + connected + " sendtime:" + sendtime);
-    if ( connected == true && sendtime == 0) {
-        sendtime = process.hrtime();
+    if ( connected == true ) {
+
+        message_buffer.writeBigUInt64BE(process.hrtime.bigint(), 0);
         client.publish(topic, message_buffer, message_options);
         if (skipPacketsMeasurement) {
             console.log("skipping first packets (option -w)");
