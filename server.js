@@ -24,6 +24,7 @@ var CA = __dirname + '/ca_certificate.pem';
  * -c mqtt clientid
  * -t topic to publish on
  * -w number of first packet to skip from measurement
+ * -v verbosity
  * 
  * When using TLS make sure the CA certificate is known. E.g. by
  * specifying the path wit an environment variable:
@@ -83,6 +84,7 @@ var message_options = {
 var file_log = (typeof args.o === 'undefined' || args.o === null) ? null : args.o;
 
 var topic=(typeof args.t === 'undefined' || args.t === null) ? "testtopic" : args.t;
+var verbosity=(typeof args.v === 'undefined' || args.v === null) ? 0 : args.v;
 var number_of_bytes_send = (typeof args.b === 'undefined' || args.b === null) ? 10 : args.b;
 const message_buffer = Buffer.alloc(number_of_bytes_send, 1); // buffer filled with ones
 var sendtime = 999; // arbitrary number other than 0 to start only with sending after subscribing
@@ -128,6 +130,9 @@ client.on("error", function(error){
 client.on('message',function(topic, message, packet){
     // console.log("incomming message with sendtime: " + sendtime + " and message: " + message);
         let delaytime  = Number(process.hrtime.bigint() - message.readBigUInt64BE(0));
+        if (verbosity <=2) {
+            console.log("Receiving..");
+        }
         fs.write(fd_log, Date.now().valueOf() + "|" + delaytime/1000000 + "\n",function postWrite(errWrite, written, string){
             if (errWrite) {
                 console.error("Error writing log data");
@@ -152,6 +157,9 @@ setInterval(function(){
 
         message_buffer.writeBigUInt64BE(process.hrtime.bigint(), 0);
         client.publish(topic, message_buffer, message_options);
+        if (verbosity <=2) {
+            console.log("Sending..");
+        }
         if (skipPacketsMeasurement) {
             console.log("skipping first packets (option -w)");
         } else {
