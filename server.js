@@ -123,6 +123,7 @@ client.on("connect",function(){
 
 client.on("error", function(error){ 
    console.log("Can't connect"+error);
+   process.exit(1);
 });
 
 //handle incoming messages
@@ -130,7 +131,7 @@ client.on('message',function(topic, message, packet){
     // console.log("incomming message with sendtime: " + sendtime + " and message: " + message);
         let delaytime  = Number(process.hrtime.bigint() - message.readBigUInt64BE(0));
         if (verbosity <=2) {
-            console.log("Receiving..");
+            console.log("Sending..");
         }
         fs.write(fd_log, Date.now().valueOf() + "|" + delaytime/1000000 + "\n",function postWrite(errWrite, written, string){
             if (errWrite) {
