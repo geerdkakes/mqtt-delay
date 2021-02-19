@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "minimist": "^1.2.0",
-    "mqtt": "^2.18.8",
+    "minimist": "^1.2.5",
+    "mqtt": "^4.2.6",
     "node-cleanup": "^2.1.2"
   }
 }
