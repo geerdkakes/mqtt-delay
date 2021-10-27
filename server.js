@@ -4,8 +4,6 @@ var nodeCleanup = require('node-cleanup');
 const fs = require('fs');
 var secure = false;
 var port;
-var testNumLimite;
-var testNum = 0;
 var skipPacketsMeasurement = 0;
 var KEY = __dirname + '/client_key.pem';
 var CERT = __dirname + '/client_certificate.pem';
@@ -20,11 +18,11 @@ var CA = __dirname + '/ca_certificate.pem';
  * -u user
  * -s passwd
  * -o output logfile name to write to
- * -n number of tests
  * -c mqtt clientid
  * -t topic to publish on
  * -w number of first packet to skip from measurement
  * -v verbosity
+ * -d duration
  * 
  * When using TLS make sure the CA certificate is known. E.g. by
  * specifying the path wit an environment variable:
@@ -51,8 +49,9 @@ if (typeof args.p === 'undefined' || args.p === null) {
 } else {
     port = args.p;
 }
+const testduration = (typeof args.d === 'undefined' || args.d === null) ?  0 : Number(args.d);
+var endtime = Math.round(Date.now()/1000) + testduration;
 
-testNumLimite = args.n;
 skipPacketsMeasurement = args.w || 0;
 
 var mqtt_options = {
@@ -89,6 +88,7 @@ var number_of_bytes_send = (typeof args.b === 'undefined' || args.b === null) ? 
 const message_buffer = Buffer.alloc(number_of_bytes_send, 1); // buffer filled with ones
 var sendtime = 999; // arbitrary number other than 0 to start only with sending after subscribing
 var connected = false;
+var testNum = 0;
 var interval = (typeof args.i === 'undefined' || args.i === null) ? 500 : args.i; // millisecond
 var timing_values = [];
 var client  = mqtt.connect(mqtt_url,
@@ -102,7 +102,8 @@ if (file_log) {
     fs.open(file_log, 'a', function postOpen(errOpen, fd) {
         if (errOpen) {
             console.error("could not open file: " + file_log + " for writing");
-            process.exit(1);
+            process.exitCode = 1;
+            process.exit();
         }
         fd_log = fd;
     });
@@ -117,13 +118,15 @@ client.on("connect",function(){
         if (!err) {
           console.log("subscribed to topic " + topic);
           sendtime = 0; // enable sending
+          endtime = Math.round(Date.now()/1000) + testduration;
         } else console.log( "error subscribing:" + err );
     });
 });
 
 client.on("error", function(error){ 
    console.log("Can't connect"+error);
-   process.exit(1);
+   process.exitCode = 1;
+   process.exit();
 });
 
 //handle incoming messages
@@ -142,11 +145,6 @@ client.on('message',function(topic, message, packet){
             skipPacketsMeasurement--;
         } else {
             timing_values.push(delaytime);
-        }
-
-        if (testNumLimite && testNum >= Number(testNumLimite)) {
-            // We have reached the amount of tests (specified with -n option)
-            process.exit(0);
         }
 });
 
@@ -171,6 +169,10 @@ setInterval(function(){
         } else {
             console.log("skipping...");
         }
+    }
+    if (testduration > 0 && Math.round(Date.now()/1000) > endtime) {
+        process.exitCode = 0;
+        process.exit();
     }
 }, interval);
 

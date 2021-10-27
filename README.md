@@ -24,7 +24,7 @@ the flags stand for:
  * -u user
  * -s passwd
  * -o output file to write output to (if ommited stdout is used)
- * -n number of tests to run
+ * -d test duration in seconds. default there is no testduaration
  * -w packets to skip
 
 
